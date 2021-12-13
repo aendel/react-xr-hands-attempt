@@ -1,6 +1,7 @@
+// @ts-nocheck
 import ReactDOM from 'react-dom'
 import React, { useState, useEffect, Fragment } from 'react'
-import { VRCanvas, Hands } from '@react-three/xr'
+import { VRCanvas, DefaultXRControllers, Hands } from '@react-three/xr'
 import { useThree, useFrame } from '@react-three/fiber'
 import { Box, OrbitControls, Plane, Sphere, Sky, useMatcapTexture } from '@react-three/drei'
 import { usePlane, useBox, Physics, useSphere } from '@react-three/cannon'
@@ -12,16 +13,16 @@ function Cube({ position, args = [0.06, 0.06, 0.06] }: any) {
   const [tex] = useMatcapTexture('C7C0AC_2E181B_543B30_6B6270')
 
   return (
-    <Box ref={boxRef} args={args as any} castShadow>
-      <meshMatcapMaterial attach="material" matcap={tex as any} />
+    <Box ref={boxRef} args={args} castShadow>
+      <meshMatcapMaterial attach="material" matcap={tex} />
     </Box>
   )
 }
 
 function JointCollider({ index, hand }: { index: number; hand: number }) {
   const { gl } = useThree()
-  const handObj = (gl.xr as any).getHand(hand)
-  const joint = handObj.joints[joints[index]] as any
+  const handObj = gl.xr.getHand(hand)
+  const joint = handObj.joints[joints[index]]
   const size = joint.jointRadius ?? 0.0001
   const [tipRef, api] = useSphere(() => ({ args: size, position: [-1, 0, 0] }))
   useFrame(() => {
@@ -41,10 +42,10 @@ function HandsReady(props: any) {
   const { gl } = useThree()
   useEffect(() => {
     if (ready) return
-    const joint = (gl.xr as any).getHand(0).joints['index-finger-tip']
+    const joint = gl.xr.getHand(0).joints['index-finger-tip']
     if (joint?.jointRadius !== undefined) return
     const id = setInterval(() => {
-      const joint = (gl.xr as any).getHand(0).joints['index-finger-tip']
+      const joint = gl.xr.getHand(0).joints['index-finger-tip']
       if (joint?.jointRadius !== undefined) {
         setReady(true)
       }
@@ -73,7 +74,7 @@ function Scene() {
   return (
     <>
       <Sky />
-      <Plane ref={floorRef} args={[10, 10]} receiveShadow>
+      <Plane ref={floorRef} args={[5, 5]} receiveShadow>
         <meshStandardMaterial attach="material" color="#fff" />
       </Plane>
       <Hands />
@@ -92,6 +93,7 @@ function Scene() {
 
 const App = () => (
   <VRCanvas shadowMap>
+    <DefaultXRControllers />
     <Physics
       gravity={[0, -2, 0]}
       iterations={20}
